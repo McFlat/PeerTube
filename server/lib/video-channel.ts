@@ -4,11 +4,18 @@ import { VideoChannelCreate } from '../../shared/models'
 import { AccountModel } from '../models/account/account'
 import { VideoChannelModel } from '../models/video/video-channel'
 import { buildActorInstance, getVideoChannelActivityPubUrl } from './activitypub'
+import { CONFIG } from '../initializers';
 
 async function createVideoChannel (videoChannelInfo: VideoChannelCreate, account: AccountModel, t: Sequelize.Transaction) {
   const uuid = uuidv4()
-  const url = getVideoChannelActivityPubUrl(videoChannelInfo.name)
-  const actorInstance = buildActorInstance('Group', url, videoChannelInfo.name, uuid)
+  let videoChannelName = videoChannelInfo.name
+  if (CONFIG.SIGNUP.CHANNEL_SUFFIX === true) {
+    if (videoChannelInfo.name.indexOf('_channel') === -1) {
+      videoChannelName = `${videoChannelInfo.name}_channel`
+    }
+  }
+  const url = getVideoChannelActivityPubUrl(videoChannelName)
+  const actorInstance = buildActorInstance('Group', url, videoChannelName, uuid)
 
   const actorInstanceCreated = await actorInstance.save({ transaction: t })
 
